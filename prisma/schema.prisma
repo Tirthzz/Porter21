@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model product_prices {
+  id               BigInt    @id @default(autoincrement())
+  vendor_id        BigInt
+  vendor_sku       String?   @db.VarChar(100)
+  min_bottle_price Decimal?  @db.Decimal(10, 2)
+  case_price       Decimal?  @db.Decimal(10, 2)
+  month            DateTime? @db.Date
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([vendor_id, vendor_sku, month], map: "idx_prices_lookup")
+}
+
+model product_profiles {
+  id                  BigInt                          @id @default(autoincrement())
+  size                String?                         @db.VarChar(50)
+  vintage             String?                         @db.VarChar(20)
+  units_per_case      Int?
+  department          String?                         @db.VarChar(100)
+  subtype             String?                         @db.VarChar(100)
+  appellation         String?                         @db.VarChar(100)
+  varietal            String?                         @db.VarChar(100)
+  region              String?                         @db.VarChar(100)
+  county              String?                         @db.VarChar(100)
+  feature             String?                         @db.Text
+  producer            String?                         @db.VarChar(255)
+  product_information String?                         @db.Text
+  image_url           String?                         @db.Text
+  provi_product_name  String?                         @db.VarChar(255)
+  source_link         String?                         @db.Text
+  vendor_product_name String?                         @db.Text
+  master_id           String?                         @db.VarChar(100)
+  created_at          DateTime?                       @default(now()) @db.Timestamp(0)
+  vivino_name         String?                         @db.VarChar(255)
+  vivino_link         String?                         @db.Text
+  vivino_status       product_profiles_vivino_status?
+  categoryId          Int?
+  subcategoryId       Int?
+  category            Category?                       @relation(fields: [categoryId], references: [id])
+  subcategory         Subcategory?                    @relation(fields: [subcategoryId], references: [id])
+  orderItems          OrderItem[]
+
+  @@index([categoryId])
+  @@index([subcategoryId])
+}
+
+model product_stock {
+  id         BigInt    @id @default(autoincrement())
+  vendor_id  BigInt
+  vendor_sku String    @db.VarChar(100)
+  stock      Decimal?  @db.Decimal(10, 2)
+  status     String?   @db.VarChar(50)
+  month      DateTime? @db.Date
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([vendor_id, vendor_sku, month], map: "idx_vendor_month_stock")
+}
+
+model product_vendor_skus {
+  id                  BigInt    @id @default(autoincrement())
+  product_profile_id  BigInt
+  vendor_id           BigInt
+  vendor_sku          String    @db.VarChar(100)
+  vendor_product_name String?   @db.VarChar(255)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+  division            String?   @db.VarChar(255)
+
+  @@unique([vendor_id, vendor_sku], map: "uniq_vendor_product")
+  @@index([product_profile_id])
+}
+
+model vendors {
+  id            BigInt    @id @default(autoincrement())
+  name          String    @unique(map: "name") @db.VarChar(100)
+  contact_email String?   @db.VarChar(255)
+  website       String?   @db.Text
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model Category {
+  id            Int                @id @default(autoincrement())
+  name          String             @unique
+  slug          String             @unique
+  description   String?
+  imageUrl      String?
+  created_at    DateTime?          @default(now()) @db.Timestamp(0)
+  subcategories Subcategory[]
+  products      product_profiles[]
+}
+
+model Subcategory {
+  id         Int                @id @default(autoincrement())
+  name       String
+  slug       String
+  categoryId Int
+  created_at DateTime?          @default(now()) @db.Timestamp(0)
+  category   Category           @relation(fields: [categoryId], references: [id])
+  products   product_profiles[]
+
+  @@index([categoryId])
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  price      Decimal
+  status     String
+  created_at DateTime    @default(now()) @db.Timestamp(0)
+  items      OrderItem[]
+}
+
+model OrderItem {
+  id        Int              @id @default(autoincrement())
+  orderId   Int
+  productId BigInt
+  quantity  Int
+  order     Order            @relation(fields: [orderId], references: [id])
+  product   product_profiles @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+enum product_profiles_vivino_status {
+  YES
+  NO
+  LIMITED
+}
