@@ -1,7 +1,7 @@
 import Filter from "@/Components/Filter";
 import ProductList from "@/Components/ProductList";
 import Image from "next/image";
-const ListPage = () => {
+const ListPage = ({ searchParams }: { searchParams: any }) => {
   return (
     <div className="px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 relative">
       {/* CAMPAIGN */}
