@@ -1,28 +1,34 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/Components/Navbar";
 import Footer from "@/Components/Footer";
 
-const inter = Inter({ subsets: ["latin"] });
+// Use Montserrat with all weights for flexibility with Tailwind utilities
+const montserrat = Montserrat({
+    subsets: ["latin"],
+    weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+    variable: "--font-montserrat",
+    display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Capital Spirits",
-  description: "Your Capital for all Beer, Wine & Spirits!",
+    title: "Capital Spirits",
+    description: "Your Capital for all Beer, Wine & Spirits!",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Navbar />
-        {children}
-        <Footer />
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en" className={montserrat.variable}>
+            <body>
+                <Navbar />
+                {children}
+                <Footer />
+            </body>
+        </html>
+    );
 }

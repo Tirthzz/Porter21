@@ -1,45 +1,54 @@
+"use client";
+
 import Link from "next/link";
 import Menu from "./Menu";
 import Image from "next/image";
 import SearchBar from "./SearchBar";
 import dynamic from "next/dynamic";
-//import NavIcons from "./NavIcons";
+
+// Dynamic import of NavIcons to avoid SSR issues
 const NavIcons = dynamic(() => import("./NavIcons"), { ssr: false });
 
 const Navbar = () => {
-  return (
-    <div className="h-20 px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 relative">
-      {/* MOBILE */}
-      <div className="h-full flex items-center justify-between md:hidden">
-        <Link href="/">
-          <div className="text-2xl tracking-wide">Capital Spirits</div>
-        </Link>
-        <Menu />
-      </div>
-      {/* BIGGER SCREENS */}
-      <div className="hidden md:flex items-center justify-between gap-8 h-full">
-        {/* LEFT */}
-        <div className="w-1/3 xl:w-1/2 flex items-center gap-12">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="" width={24} height={24} />
-            <div className="text-2xl tracking-wide">Capital Spirits</div>
-          </Link>
-          <div className="hidden xl:flex gap-4">
-            <Link href="/">Homepage</Link>
-            <Link href="/">Shop</Link>
-            <Link href="/">Deals</Link>
-            <Link href="/">About</Link>
-            <Link href="/">Contact</Link>
-          </div>
-        </div>
-        {/* RIGHT */}
-        <div className="w-2/3 xl:w-1/2 flex items-center justify-between gap-8">
-          <SearchBar />
-          <NavIcons />
-        </div>
-      </div>
-    </div>
-  );
+    return (
+        <header className="w-full h-20 px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 bg-background border-b border-border flex items-center justify-between">
+            {/* MOBILE NAVBAR */}
+            <div className="flex items-center justify-between w-full md:hidden">
+                <Link href="/">
+                    <span className="text-2xl tracking-wide text-primary font-semibold">
+                        Capital Spirits
+                    </span>
+                </Link>
+                <Menu />
+            </div>
+
+            {/* DESKTOP NAVBAR */}
+            <div className="hidden md:flex items-center justify-between w-full">
+                {/* LEFT SECTION: Logo + Nav Links */}
+                <div className="flex items-center gap-12">
+                    <Link href="/" className="flex items-center gap-2">
+                        <Image src="/logo.png" alt="Capital Spirits Logo" width={32} height={32} />
+                        <span className="text-2xl tracking-wide text-primary font-semibold">
+                            Capital Spirits
+                        </span>
+                    </Link>
+                    <nav className="hidden xl:flex gap-6">
+                        <Link href="/" className="text-text hover:text-icon transition">Home</Link>
+                        <Link href="/shop" className="text-text hover:text-icon transition">Shop</Link>
+                        <Link href="/deals" className="text-text hover:text-icon transition">Deals</Link>
+                        <Link href="/about" className="text-text hover:text-icon transition">About</Link>
+                        <Link href="/contact" className="text-text hover:text-icon transition">Contact</Link>
+                    </nav>
+                </div>
+
+                {/* RIGHT SECTION: Search + Nav Icons */}
+                <div className="flex items-center gap-6">
+                    <SearchBar />
+                    <NavIcons />
+                </div>
+            </div>
+        </header>
+    );
 };
 
 export default Navbar;

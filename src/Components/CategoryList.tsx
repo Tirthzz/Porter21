@@ -2,47 +2,45 @@ import Image from "next/image";
 import Link from "next/link";
 import { catType } from "@/types/types";
 
+// Fetch categories from your API
 const getData = async () => {
-  const res = await fetch("http://localhost:3000/api/categories", {
-    cache: "no-store",
-  });
+    const res = await fetch("http://localhost:3000/api/categories", {
+        cache: "no-store",
+    });
 
-  if (!res.ok) {
-    throw new Error("Failed!");
-  }
+    if (!res.ok) {
+        throw new Error("Failed to fetch categories.");
+    }
 
-  return res.json();
+    return res.json();
 };
 
 const CategoryList = async () => {
-  const cats: catType = await getData();
+    const cats: catType = await getData();
 
-  return (
-    <div className="px-4 overflow-x-scroll scrollbar-hide">
-      <div className="flex gap-4 md:gap-8">
-        {cats.map((item) => (
-          <Link
-            href={`/list?cat=${item.slug}`}
-            className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/4 xl:w-1/6"
-            key={item.id}
-          >
-            <div className="relative bg-slate-100 w-full h-96">
-              <Image
-                src="https://res.cloudinary.com/tiz2/image/upload/e_trim/f_auto,w_1500,h_1000,c_pad,b_white/v1701889056/products/2029346.jpg"
-                alt=""
-                fill
-                sizes="20vw"
-                className="object-cover"
-              />
-            </div>
-            <h1 className="mt-8 font-light text-xl tracking-wide">
-              {item.name}
-            </h1>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+    return (
+        <div className="flex justify-center items-center gap-6 sm:gap-8 lg:gap-12 flex-wrap">
+            {cats.slice(0, 5).map((item) => (
+                <Link
+                    href={`/list?cat=${item.slug}`}
+                    key={item.id}
+                    className="flex flex-col items-center group transition-transform hover:scale-105 w-24 sm:w-28 lg:w-32"
+                >
+                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-2 border-border bg-background group-hover:border-primary transition">
+                        <Image
+                            src="https://res.cloudinary.com/tiz2/image/upload/e_trim/f_auto,w_1500,h_1000,c_pad,b_white/v1701889056/products/2029346.jpg"
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                        />
+                    </div>
+                    <span className="mt-3 text-sm sm:text-base text-center font-medium text-text group-hover:text-primary transition">
+                        {item.name}
+                    </span>
+                </Link>
+            ))}
+        </div>
+    );
 };
 
 export default CategoryList;
