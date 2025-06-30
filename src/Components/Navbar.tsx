@@ -5,6 +5,8 @@ import Menu from "./Menu";
 import Image from "next/image";
 import SearchBar from "./SearchBar";
 import dynamic from "next/dynamic";
+import UserLinks from "./UserLinks";
+
 
 // Dynamic import of NavIcons to avoid SSR issues
 const NavIcons = dynamic(() => import("./NavIcons"), { ssr: false });
@@ -44,6 +46,7 @@ const Navbar = () => {
                 {/* RIGHT SECTION: Search + Nav Icons */}
                 <div className="flex items-center gap-6">
                     <SearchBar />
+                    <UserLinks />
                     <NavIcons />
                 </div>
             </div>
