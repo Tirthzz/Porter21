@@ -8,6 +8,7 @@ export type catType = {
 
 export type SingleProductType = {
     id: string;
+    slug: string;
     provi_product_name?: string;
     image_url?: string;
     product_information?: string;

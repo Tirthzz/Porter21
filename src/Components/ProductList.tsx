@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -56,24 +57,30 @@ const ProductList = () => {
             <div className="flex gap-x-8 gap-y-16 justify-between flex-wrap">
                 {products.map((product: SingleProductType) => (
                     <Link
-                        href={`/product/${product.id}`}
-                        key={product.id}
-                        className="w-full flex flex-col gap-4 sm:w-[45%] lg:w-[22%]"
+                        href={`/${product.slug}`}
+                        key={product.id.toString()}
+                        className="
+        w-full sm:w-[45%] lg:w-[22%]
+        flex flex-col
+        gap-4
+        rounded-lg
+        border
+        border-gray-200
+        shadow-sm
+        hover:shadow-md
+        transition-shadow
+        duration-300
+        bg-white
+        p-4
+    "
                     >
-                        <div className="relative w-full h-80">
+                        <div className="relative w-full h-60 rounded-md overflow-hidden">
                             <Image
                                 src={product.image_url || "/placeholder.png"}
                                 alt={product.provi_product_name || "Product Image"}
                                 fill
                                 sizes="25vw"
-                                className="absolute object-cover rounded-md z-10 hover:opacity-0 transition-opacity duration-500"
-                            />
-                            <Image
-                                src={product.image_url || "/placeholder.png"}
-                                alt={product.provi_product_name || "Product Image"}
-                                fill
-                                sizes="25vw"
-                                className="absolute object-cover rounded-md z-10 hover:opacity-0 transition-opacity duration-500"
+                                className="object-cover transition-transform duration-500 hover:scale-105"
                             />
                         </div>
                         <div className="flex justify-between">
@@ -83,8 +90,7 @@ const ProductList = () => {
                             </span>
                         </div>
                         <div className="text-sm text-gray-500">
-                            {product.product_information?.slice(0, 50) ||
-                                "No description available..."}
+                            {product.product_information?.slice(0, 50) || "No description available..."}
                         </div>
                         <button className="rounded-2xl ring-1 ring-lama text-lama w-max py-2 px-4 text-xs hover:bg-lama hover:text-white">
                             Add to Cart
@@ -93,6 +99,7 @@ const ProductList = () => {
                 ))}
             </div>
 
+            {/* Pagination */}
             <div className="mt-10 flex justify-center gap-4">
                 {currentPage > 1 && (
                     <button
