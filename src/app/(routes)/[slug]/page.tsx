@@ -26,10 +26,11 @@ const SinglePage = async ({ params }: { params: { slug: string } }) => {
     console.log("slug page rendered:", params.slug);
 
     return (
-        <div className="px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 relative flex flex-col lg:flex-row gap-16">
-
+        <div className="px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 py-10">
+            <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Product Images */}
-            <div className="w-full lg:w-1/2 lg:sticky top-20 h-max">
+                <div className="w-full max-w-lg mx-auto lg:mx-0">
+
                 <ProductsImages
                     images={[
                         {
@@ -41,7 +42,8 @@ const SinglePage = async ({ params }: { params: { slug: string } }) => {
             </div>
 
             {/* Product Details */}
-            <div className="w-full lg:w-1/2 flex flex-col gap-6">
+                <div className="flex flex-col gap-6">
+
                 <h1 className="text-4xl font-medium">
                     {singleProduct.provi_product_name ?? "Product Name"}
                 </h1>
@@ -50,26 +52,28 @@ const SinglePage = async ({ params }: { params: { slug: string } }) => {
                     {singleProduct.product_information ?? "No description available for this product."}
                 </p>
 
-                <div className="h-[2px] bg-gray-100" />
+                    <div className="border-t pt-4" />
 
-                <div className="flex items-center gap-4">
-                    {singleProduct.product_prices && singleProduct.product_prices.length > 0 ? (
-                        <>
-                            {singleProduct.product_prices[0].min_bottle_price && (
-                                <h3 className="text-xl text-gray-500 line-through">
-                                    ${parseFloat(singleProduct.product_prices[0].min_bottle_price).toFixed(2)}
-                                </h3>
-                            )}
-                            {singleProduct.product_prices[0].case_price && (
-                                <h2 className="font-medium text-2xl">
-                                    ${parseFloat(singleProduct.product_prices[0].case_price).toFixed(2)}
-                                </h2>
-                            )}
-                        </>
-                    ) : (
-                        <h2 className="font-medium text-2xl">Price unavailable</h2>
-                    )}
-                </div>
+
+                    <div className="flex items-center gap-4">
+                        {singleProduct.product_prices && singleProduct.product_prices.length > 0 ? (
+                            <>
+                                {singleProduct.product_prices[0].min_bottle_price && (
+                                    <span className="text-2xl font-bold text-green-700">
+                                        ${parseFloat(singleProduct.product_prices[0].min_bottle_price).toFixed(2)}
+                                    </span>
+                                )}
+                                {singleProduct.product_prices[0].case_price && (
+                                    <span className="text-gray-400 line-through text-lg">
+                                        ${parseFloat(singleProduct.product_prices[0].case_price).toFixed(2)}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <span className="text-xl text-gray-500">Price unavailable</span>
+                        )}
+                    </div>
+
 
                 <div className="h-[2px] bg-gray-100" />
 
@@ -96,6 +100,7 @@ const SinglePage = async ({ params }: { params: { slug: string } }) => {
                     <h4 className="font-medium mb-4">Shipping Info</h4>
                     <p>Shipping typically takes 3-5 business days, depending on your location and the product availability.</p>
                 </div>
+            </div>
             </div>
         </div>
     );
