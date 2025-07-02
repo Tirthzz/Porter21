@@ -1,22 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
-const PRICE_PER_BOTTLE = 15;
+interface CustomizeProductsProps {
+    pricing: {
+        price_3pk: number | null;
+        price_6pk: number | null;
+        price_9pk: number | null;
+        price_12pk: number | null;
+    };
+    selectedPack: number; // <-- Add this
+    setSelectedPack: React.Dispatch<React.SetStateAction<number>>; // <-- Add this
+}
 
-const PACK_OPTIONS = [
-    { label: "3 Pack", value: 3, disabled: true },
-    { label: "6 Pack", value: 6 },
-    { label: "9 Pack", value: 9 },
-    { label: "12 Pack", value: 12 },
-];
-
-const getTotalPrice = (packSize: number) => {
-    return packSize * PRICE_PER_BOTTLE;
-};
-
-const CustomizeProducts = () => {
-    const [selectedPack, setSelectedPack] = useState(9);
+const CustomizeProducts: React.FC<CustomizeProductsProps> = ({ pricing, selectedPack, setSelectedPack }) => {
+    const PACK_OPTIONS = [
+        { label: "3 Pack", value: 3, price: pricing.price_3pk },
+        { label: "6 Pack", value: 6, price: pricing.price_6pk },
+        { label: "9 Pack", value: 9, price: pricing.price_9pk },
+        { label: "12 Pack", value: 12, price: pricing.price_12pk },
+    ];
 
     const handleSelect = (packValue: number, disabled?: boolean) => {
         if (!disabled) {
@@ -29,17 +32,16 @@ const CustomizeProducts = () => {
             <h4 className="font-medium">Select a Pack</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {PACK_OPTIONS.map((pack) => {
-                    const totalPrice = getTotalPrice(pack.value);
                     const isSelected = selectedPack === pack.value;
+                    const disabled = pack.price === null || pack.price === undefined;
                     return (
                         <div
                             key={pack.value}
-                            onClick={() => handleSelect(pack.value, pack.disabled)}
+                            onClick={() => handleSelect(pack.value, disabled)}
                             className={`
                                 flex flex-col items-center justify-center
-                                border rounded-md p-2 cursor-pointer
-                                transition
-                                ${pack.disabled
+                                border rounded-md p-2 cursor-pointer transition
+                                ${disabled
                                     ? "bg-pink-100 text-pink-400 cursor-not-allowed"
                                     : isSelected
                                         ? "border-lama bg-lama text-white"
@@ -49,21 +51,14 @@ const CustomizeProducts = () => {
                         >
                             <span className="font-medium">{pack.label}</span>
                             <span className={`text-sm ${isSelected ? "text-white" : "text-gray-600"}`}>
-                                ${totalPrice.toFixed(2)}
+                                {pack.price !== null && pack.price !== undefined
+                                    ? `$${pack.price.toFixed(2)}`
+                                    : "N/A"}
                             </span>
                         </div>
                     );
                 })}
             </div>
-
-            {/* Total Price Confirmation Below */}
-            {/*<div className="mt-4 p-4 border rounded-lg bg-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">*/}
-            {/*    <span className="text-lg font-semibold">Total Price:</span>*/}
-            {/*    <span className="text-2xl font-bold text-green-700">*/}
-            {/*        ${getTotalPrice(selectedPack).toFixed(2)}*/}
-            {/*    </span>*/}
-            {/*    <span className="text-sm text-gray-500">(at ${PRICE_PER_BOTTLE.toFixed(2)} per bottle)</span>*/}
-            {/*</div>*/}
         </div>
     );
 };

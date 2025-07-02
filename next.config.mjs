@@ -29,7 +29,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "assets.provi.com",
-      },
+          },
+          {
+              protocol: "https",
+              hostname: "lh3.googleusercontent.com",
+          },
     ],
   },
 };

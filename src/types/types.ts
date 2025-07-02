@@ -22,7 +22,22 @@ export type SingleProductType = {
         case_price?: string;
         month?: string;
     }[];
+    website_pricing?: {
+        id: string;
+        price_3pk?: string;
+        price_6pk?: string;
+        price_9pk?: string;
+        price_12pk?: string;
+        unit_price_before?: string;
+        unit_price_after?: string;
+    } | null;
+    product_quantity?: {
+        id: string;
+        product_profile_id: string;
+        quantity: number;
+    } | null;
 };
+
 
 export type ProductListType = SingleProductType[];
 

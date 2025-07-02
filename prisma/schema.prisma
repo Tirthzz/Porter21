@@ -16,60 +16,55 @@ model User {
   emailVerified DateTime?
   image         String?
   isAdmin       Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   accounts      Account[]
   sessions      Session[]
-  // Optional for WebAuthn support
   Authenticator Authenticator[]
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
- 
+
 model Account {
-  id                       String  @id @default(cuid())
-  userId                   String  @unique
+  id                       String   @id @default(cuid())
+  userId                   String   @unique
   type                     String
   provider                 String
   providerAccountId        String
-  refresh_token            String? @db.Text
-  access_token             String? @db.Text
+  refresh_token            String?  @db.Text
+  access_token             String?  @db.Text
   expires_at               Int?
   token_type               String?
   scope                    String?
-  id_token                 String? @db.Text
+  id_token                 String?  @db.Text
   session_state            String?
   refresh_token_expires_in Int?
-  user                     User?   @relation(fields: [userId], references: [id])
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
- 
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime
+  user                     User?    @relation(fields: [userId], references: [id])
+
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
- 
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
   user         User     @relation(fields: [userId], references: [id])
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
- 
+
   @@index([userId])
 }
- 
+
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
- 
+
   @@unique([identifier, token])
 }
- 
-// Optional for WebAuthn support
+
 model Authenticator {
   credentialID         String  @unique
   userId               String
@@ -79,9 +74,8 @@ model Authenticator {
   credentialDeviceType String
   credentialBackedUp   Boolean
   transports           String?
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@id([userId, credentialID])
 }
 
@@ -124,28 +118,24 @@ model product_profiles {
   vivino_status       product_profiles_vivino_status?
   categoryId          Int?
   subcategoryId       Int?
+  slug                String                          @unique
   category            Category?                       @relation(fields: [categoryId], references: [id])
   subcategory         Subcategory?                    @relation(fields: [subcategoryId], references: [id])
   orderItems          OrderItem[]
   product_prices      product_prices[]
   website_pricing     website_pricing?
-  slug String @unique
-
+  product_quantity    product_quantity?
 
   @@index([categoryId])
   @@index([subcategoryId])
 }
 
-model product_stock {
-  id         BigInt    @id @default(autoincrement())
-  vendor_id  BigInt
-  vendor_sku String    @db.VarChar(100)
-  stock      Decimal?  @db.Decimal(10, 2)
-  status     String?   @db.VarChar(50)
-  month      DateTime? @db.Date
-  created_at DateTime? @default(now()) @db.Timestamp(0)
-
-  @@index([vendor_id, vendor_sku, month], map: "idx_vendor_month_stock")
+model product_quantity {
+  id                 BigInt           @id @default(autoincrement())
+  product_profile_id BigInt           @unique
+  quantity           Int
+  created_at         DateTime?        @default(now()) @db.Timestamp(0)
+  product_profile    product_profiles @relation(fields: [product_profile_id], references: [id])
 }
 
 model product_vendor_skus {
@@ -213,85 +203,33 @@ model OrderItem {
 }
 
 model website_pricing {
-  id                 BigInt    @id @default(autoincrement())
-  product_profile_id BigInt
-  price_3pk          Decimal?  @db.Decimal(10, 2)
-  price_6pk          Decimal?  @db.Decimal(10, 2)
-  price_9pk          Decimal?  @db.Decimal(10, 2)
-  price_12pk         Decimal?  @db.Decimal(10, 2)
-  unit_price_before  Decimal?  @db.Decimal(10, 2) // New column
-  unit_price_after   Decimal?  @db.Decimal(10, 2) // New column
-  created_at         DateTime? @default(now()) @db.Timestamp(0)
-  updated_at         DateTime? @updatedAt @db.Timestamp(0)
-
-  product_profile product_profiles @relation(fields: [product_profile_id], references: [id])
-
-  @@unique([product_profile_id])
+  id                 BigInt           @id @default(autoincrement())
+  product_profile_id BigInt           @unique
+  price_3pk          Decimal?         @db.Decimal(10, 2)
+  price_6pk          Decimal?         @db.Decimal(10, 2)
+  price_9pk          Decimal?         @db.Decimal(10, 2)
+  price_12pk         Decimal?         @db.Decimal(10, 2)
+  unit_price_before  Decimal?         @db.Decimal(10, 2)
+  unit_price_after   Decimal?         @db.Decimal(10, 2)
+  created_at         DateTime?        @default(now()) @db.Timestamp(0)
+  updated_at         DateTime?        @updatedAt @db.Timestamp(0)
+  product_profile    product_profiles @relation(fields: [product_profile_id], references: [id])
 }
 
-model vt_vrp_67cb2ec3b5bf597bb1935ea5739bfb02_20250626220419_ {
-  id                  BigInt                                                                 @id @default(autoincrement())
-  size                String?                                                                @db.VarChar(50)
-  vintage             String?                                                                @db.VarChar(20)
-  units_per_case      Int?
-  department          String?                                                                @db.VarChar(100)
-  subtype             String?                                                                @db.VarChar(100)
-  appellation         String?                                                                @db.VarChar(100)
-  varietal            String?                                                                @db.VarChar(100)
-  region              String?                                                                @db.VarChar(100)
-  county              String?                                                                @db.VarChar(100)
-  feature             String?                                                                @db.Text
-  producer            String?                                                                @db.VarChar(255)
-  product_information String?                                                                @db.Text
-  image_url           String?                                                                @db.Text
-  provi_product_name  String?                                                                @db.VarChar(255)
-  source_link         String?                                                                @db.Text
-  vendor_product_name String?                                                                @db.Text
-  master_id           String?                                                                @db.VarChar(100)
-  created_at          DateTime?                                                              @default(now()) @db.Timestamp(0)
-  vivino_name         String?                                                                @db.VarChar(255)
-  vivino_link         String?                                                                @db.Text
-  vivino_status       vt_vrp_67cb2ec3b5bf597bb1935ea5739bfb02_20250626220419__vivino_status?
+model product_stock {
+  id         BigInt    @id @default(autoincrement())
+  vendor_id  BigInt
+  vendor_sku String    @db.VarChar(100)
+  stock      Decimal?  @db.Decimal(10, 2)
+  status     String?   @db.VarChar(50)
+  month      DateTime? @db.Date
+  created_at DateTime? @default(now()) @db.Timestamp(0)
 
-  @@map("_vt_vrp_67cb2ec3b5bf597bb1935ea5739bfb02_20250626220419_")
-}
-
-model vt_vrp_6a9d2ff9246b5dcda0fc8b718e8ffa8d_20250626220404_ {
-  id               BigInt    @id @default(autoincrement())
-  vendor_id        BigInt
-  vendor_sku       String?   @db.VarChar(100)
-  min_bottle_price Decimal?  @db.Decimal(10, 2)
-  case_price       Decimal?  @db.Decimal(10, 2)
-  month            DateTime? @db.Date
-  created_at       DateTime? @default(now()) @db.Timestamp(0)
-
-  @@index([vendor_id, vendor_sku, month], map: "idx_prices_lookup")
-  @@map("_vt_vrp_6a9d2ff9246b5dcda0fc8b718e8ffa8d_20250626220404_")
-}
-
-model vt_vrp_b78f8f85004f5c72a1058f8ed9dc5059_20250626220424_ {
-  id                  BigInt    @id @default(autoincrement())
-  product_profile_id  BigInt
-  vendor_id           BigInt
-  vendor_sku          String    @db.VarChar(100)
-  vendor_product_name String?   @db.VarChar(255)
-  created_at          DateTime? @default(now()) @db.Timestamp(0)
-  division            String?   @db.VarChar(255)
-
-  @@unique([vendor_id, vendor_sku], map: "uniq_vendor_product")
-  @@map("_vt_vrp_b78f8f85004f5c72a1058f8ed9dc5059_20250626220424_")
+  @@index([vendor_id, vendor_sku, month], map: "idx_vendor_month_stock")
 }
 
 enum product_profiles_vivino_status {
   YES
   NO
   LIMITED
-}
-
-enum vt_vrp_67cb2ec3b5bf597bb1935ea5739bfb02_20250626220419__vivino_status {
-  YES
-  NO
-  LIMITED
-
-  @@map("_vt_vrp_67cb2ec3b5bf597bb1935ea5739bfb02_20250626220419__vivino_status")
 }

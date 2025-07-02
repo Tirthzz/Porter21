@@ -20,6 +20,8 @@ export const GET = async (
                     orderBy: { month: "desc" },
                     take: 1,
                 },
+                website_pricing: true,
+                product_quantity: true
             },
         });
 
