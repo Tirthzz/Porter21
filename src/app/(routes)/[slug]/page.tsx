@@ -41,6 +41,19 @@ const SinglePage = ({ params }: { params: { slug: string } }) => {
     const pricing = singleProduct.website_pricing;
     const quantityAvailable = singleProduct.product_quantity?.quantity ?? 0;
 
+    // NEW: Compute selected pack price
+    const selectedPackPrice =
+        selectedPack === 3
+            ? pricing?.price_3pk ?? 0
+            : selectedPack === 6
+                ? pricing?.price_6pk ?? 0
+                : selectedPack === 9
+                    ? pricing?.price_9pk ?? 0
+                    : pricing?.price_12pk ?? 0;
+
+    // NEW: Compute packs available
+    const packsAvailable = Math.floor(quantityAvailable / selectedPack);
+
     return (
         <div className="px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 py-10">
             <div className="grid lg:grid-cols-2 gap-12 items-start">
@@ -101,9 +114,15 @@ const SinglePage = ({ params }: { params: { slug: string } }) => {
 
                     <div className="h-[2px] bg-gray-100" />
 
+                    {/* Add to Cart */}
                     <Add
-                        quantityAvailable={quantityAvailable}
+                        productId={singleProduct.id}
+                        productTitle={singleProduct.provi_product_name ?? "Product Name"}
+                        productImage={singleProduct.image_url}
                         selectedPack={selectedPack}
+                        selectedPackLabel={`${selectedPack} Pack`}
+                        selectedPackPrice={selectedPackPrice}
+                        stockAvailable={packsAvailable}
                     />
 
                     <div className="h-[2px] bg-gray-100" />

@@ -1,37 +1,49 @@
 ﻿import { prisma } from "@/utils/connect";
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client"; // Import Prisma for Decimal handling
+import { Prisma } from "@prisma/client";
 
 export const GET = async (req: Request) => {
     const { searchParams } = new URL(req.url);
     const cat = searchParams.get("cat");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const name = searchParams.get("name");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
 
     const skip = (page - 1) * limit;
 
     try {
-        const products = await prisma.product_profiles.findMany({
-            where: cat
-                ? {
-                    category: {
-                        slug: cat,
+        let products;
+
+        if (name) {
+            // Raw SQL for case-insensitive search with MySQL
+            products = await prisma.$queryRawUnsafe(`
+                SELECT * FROM product_profiles
+                WHERE LOWER(provi_product_name) LIKE LOWER('%${name}%')
+                LIMIT ${limit + 1} OFFSET ${skip}
+            `);
+        } else {
+            products = await prisma.product_profiles.findMany({
+                where: cat
+                    ? {
+                        category: {
+                            slug: cat,
+                        },
+                    }
+                    : {},
+                include: {
+                    category: true,
+                    subcategory: true,
+                    product_prices: {
+                        orderBy: {
+                            month: "desc",
+                        },
+                        take: 1,
                     },
-                }
-                : {},
-            include: {
-                category: true,
-                subcategory: true,
-                product_prices: {
-                    orderBy: {
-                        month: "desc",
-                    },
-                    take: 1,
                 },
-            },
-            skip,
-            take: limit + 1,
-        });
+                skip,
+                take: limit + 1,
+            });
+        }
 
         const hasMore = products.length > limit;
         const slicedProducts = hasMore ? products.slice(0, limit) : products;
