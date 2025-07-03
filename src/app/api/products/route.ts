@@ -5,6 +5,8 @@ import { Prisma } from "@prisma/client";
 export const GET = async (req: Request) => {
     const { searchParams } = new URL(req.url);
     const cat = searchParams.get("cat");
+    const subcat = searchParams.get("subcat");
+    const varietal = searchParams.get("varietal");
     const name = searchParams.get("name");
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
@@ -14,41 +16,45 @@ export const GET = async (req: Request) => {
     try {
         let products;
 
+        console.log("Incoming filters:", { cat, subcat, varietal, name, page, limit });
+
         if (name) {
-            // Raw SQL for case-insensitive search with MySQL
             products = await prisma.$queryRawUnsafe(`
                 SELECT * FROM product_profiles
                 WHERE LOWER(provi_product_name) LIKE LOWER('%${name}%')
                 LIMIT ${limit + 1} OFFSET ${skip}
             `);
+            console.log("Products fetched via name search:", products.length);
         } else {
             products = await prisma.product_profiles.findMany({
-                where: cat
-                    ? {
-                        category: {
-                            slug: cat,
-                        },
-                    }
-                    : {},
+                where: {
+                    ...(cat && {
+                        category: { slug: cat }
+                    }),
+                    ...(subcat && {
+                        subcategory: { slug: subcat }
+                    }),
+                    ...(varietal && {
+                        varietals: { equals: varietal, mode: "insensitive" } // adjust if array
+                    })
+                },
                 include: {
                     category: true,
                     subcategory: true,
                     product_prices: {
-                        orderBy: {
-                            month: "desc",
-                        },
+                        orderBy: { month: "desc" },
                         take: 1,
                     },
                 },
                 skip,
                 take: limit + 1,
             });
+            console.log("Products fetched via filtered search:", products.length);
         }
 
         const hasMore = products.length > limit;
         const slicedProducts = hasMore ? products.slice(0, limit) : products;
 
-        // Convert BigInt and Decimal recursively
         const convertBigIntsAndDecimals = (obj: any): any => {
             if (Array.isArray(obj)) {
                 return obj.map(convertBigIntsAndDecimals);
@@ -69,6 +75,8 @@ export const GET = async (req: Request) => {
         };
 
         const safeProducts = convertBigIntsAndDecimals(slicedProducts);
+
+        console.log("Returning", safeProducts.length, "products, hasMore:", hasMore);
 
         return new NextResponse(
             JSON.stringify({

@@ -17,7 +17,9 @@ const ProductList = () => {
     const router = useRouter();
 
     const catSlug = searchParams.get("cat");
-    const nameParam = searchParams.get("name"); 
+    const subcatSlug = searchParams.get("subcat");
+    const varietalParam = searchParams.get("varietal");
+    const nameParam = searchParams.get("name");
     const pageParam = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
@@ -31,13 +33,14 @@ const ProductList = () => {
                 queryParams.set("page", currentPage.toString());
                 queryParams.set("limit", ITEMS_PER_PAGE.toString());
                 if (catSlug) queryParams.set("cat", catSlug);
+                if (subcatSlug) queryParams.set("subcat", subcatSlug);
+                if (varietalParam) queryParams.set("varietal", varietalParam);
                 if (nameParam) queryParams.set("name", nameParam);
 
                 const res = await fetch(`/api/products?${queryParams}`);
                 if (!res.ok) throw new Error("Failed to fetch products");
 
                 const data = await res.json();
-                console.log("API Response Data:", data);
                 setProducts(data.products);
                 setHasMore(data.hasMore);
             } catch (err) {
@@ -46,7 +49,7 @@ const ProductList = () => {
         };
 
         fetchProducts();
-    }, [catSlug, nameParam, currentPage]); 
+    }, [catSlug, subcatSlug, varietalParam, nameParam, currentPage]);
 
     const goToPage = (page: number) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -66,20 +69,7 @@ const ProductList = () => {
                         <Link
                             href={`/${product.slug}`}
                             key={product.id.toString()}
-                            className="
-                                w-full sm:w-[45%] lg:w-[22%]
-                                flex flex-col
-                                gap-4
-                                rounded-lg
-                                border
-                                border-gray-200
-                                shadow-sm
-                                hover:shadow-md
-                                transition-shadow
-                                duration-300
-                                bg-white
-                                p-4
-                            "
+                            className="w-full sm:w-[45%] lg:w-[22%] flex flex-col gap-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 bg-white p-4"
                         >
                             <div className="relative w-full h-60 rounded-md overflow-hidden">
                                 <Image
@@ -131,3 +121,4 @@ const ProductList = () => {
 };
 
 export default ProductList;
+

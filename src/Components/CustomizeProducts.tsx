@@ -9,11 +9,17 @@ interface CustomizeProductsProps {
         price_9pk: number | null;
         price_12pk: number | null;
     };
-    selectedPack: number; // <-- Add this
-    setSelectedPack: React.Dispatch<React.SetStateAction<number>>; // <-- Add this
+    selectedPack: number;
+    setSelectedPack: React.Dispatch<React.SetStateAction<number>>;
+    readOnly?: boolean; // <-- Added to allow readonly display
 }
 
-const CustomizeProducts: React.FC<CustomizeProductsProps> = ({ pricing, selectedPack, setSelectedPack }) => {
+const CustomizeProducts: React.FC<CustomizeProductsProps> = ({
+    pricing,
+    selectedPack,
+    setSelectedPack,
+    readOnly = false, // default to false for interactive use
+}) => {
     const PACK_OPTIONS = [
         { label: "3 Pack", value: 3, price: pricing.price_3pk },
         { label: "6 Pack", value: 6, price: pricing.price_6pk },
@@ -22,7 +28,7 @@ const CustomizeProducts: React.FC<CustomizeProductsProps> = ({ pricing, selected
     ];
 
     const handleSelect = (packValue: number, disabled?: boolean) => {
-        if (!disabled) {
+        if (!disabled && !readOnly) {
             setSelectedPack(packValue);
         }
     };
@@ -41,7 +47,7 @@ const CustomizeProducts: React.FC<CustomizeProductsProps> = ({ pricing, selected
                             className={`
                                 flex flex-col items-center justify-center
                                 border rounded-md p-2 cursor-pointer transition
-                                ${disabled
+                                ${readOnly || disabled
                                     ? "bg-pink-100 text-pink-400 cursor-not-allowed"
                                     : isSelected
                                         ? "border-lama bg-lama text-white"

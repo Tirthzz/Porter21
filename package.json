@@ -19,6 +19,7 @@
     "react": "^18",
     "react-dom": "^18",
     "sonner": "^2.0.5",
+    "swr": "^2.3.4",
     "zustand": "^5.0.6"
   },
   "devDependencies": {
