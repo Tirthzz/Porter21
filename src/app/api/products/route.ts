@@ -6,15 +6,15 @@ export const GET = async (req: Request) => {
     const { searchParams } = new URL(req.url);
     const cat = searchParams.get("cat");
     const subcat = searchParams.get("subcat");
-    const varietal = searchParams.get("varietal");
+    const varietalRaw = searchParams.get("varietal");
     const name = searchParams.get("name");
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
-
     const skip = (page - 1) * limit;
 
     try {
         let products;
+        const varietal = varietalRaw ? decodeURIComponent(varietalRaw) : null;
 
         console.log("Incoming filters:", { cat, subcat, varietal, name, page, limit });
 
@@ -35,8 +35,15 @@ export const GET = async (req: Request) => {
                         subcategory: { slug: subcat }
                     }),
                     ...(varietal && {
-                        varietals: { equals: varietal, mode: "insensitive" } // adjust if array
-                    })
+                        varietal: {
+                            equals: varietal, // ✅ Remove mode here
+                        }
+                        // For partial match instead:
+                        // varietal: {
+                        //     contains: varietal,
+                        //     mode: "insensitive",
+                        // }
+                    }),
                 },
                 include: {
                     category: true,
@@ -75,7 +82,6 @@ export const GET = async (req: Request) => {
         };
 
         const safeProducts = convertBigIntsAndDecimals(slicedProducts);
-
         console.log("Returning", safeProducts.length, "products, hasMore:", hasMore);
 
         return new NextResponse(

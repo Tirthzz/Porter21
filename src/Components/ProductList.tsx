@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ProductListType, SingleProductType } from "@/types/types";
 
 const ITEMS_PER_PAGE = 20;
@@ -13,13 +13,10 @@ const ProductList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
 
+    const params = useParams();
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const catSlug = searchParams.get("cat");
-    const subcatSlug = searchParams.get("subcat");
-    const varietalParam = searchParams.get("varietal");
-    const nameParam = searchParams.get("name");
     const pageParam = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
@@ -32,10 +29,12 @@ const ProductList = () => {
                 const queryParams = new URLSearchParams();
                 queryParams.set("page", currentPage.toString());
                 queryParams.set("limit", ITEMS_PER_PAGE.toString());
-                if (catSlug) queryParams.set("cat", catSlug);
-                if (subcatSlug) queryParams.set("subcat", subcatSlug);
-                if (varietalParam) queryParams.set("varietal", varietalParam);
-                if (nameParam) queryParams.set("name", nameParam);
+
+                const slugArray = Array.isArray(params.slug) ? params.slug : [params.slug];
+
+                if (slugArray[0]) queryParams.set("cat", slugArray[0]);
+                if (slugArray[1]) queryParams.set("subcat", slugArray[1]);
+                if (slugArray[2]) queryParams.set("varietal", slugArray[2]);
 
                 const res = await fetch(`/api/products?${queryParams}`);
                 if (!res.ok) throw new Error("Failed to fetch products");
@@ -49,12 +48,12 @@ const ProductList = () => {
         };
 
         fetchProducts();
-    }, [catSlug, subcatSlug, varietalParam, nameParam, currentPage]);
+    }, [params, currentPage]);
 
     const goToPage = (page: number) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("page", page.toString());
-        router.push(`?${params.toString()}`);
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.set("page", page.toString());
+        router.push(`?${newSearchParams.toString()}`);
     };
 
     return (
