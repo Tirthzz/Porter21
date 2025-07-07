@@ -1,25 +1,72 @@
+"use client";
+
 import React from "react";
 
-const CustomizeProducts = () => {
-  return (
-    <div className="flex flex-col gap-6">
-      <h4 className="font-medium">Select a Pack</h4>
-      <ul className="flex items-center gap-3 ">
-        <li className="ring-1 ring-pink-200 text-white bg-pink-200 rounded-md py-1 px-4 text-sm cursor-not-allowed">
-          3 Pack
-        </li>
-        <li className="ring-1 ring-lama text-lama rounded-md py-1 px-4 text-sm cursor-pointer">
-          6 Pack
-        </li>
-        <li className="ring-1 ring-lama text-lama rounded-md py-1 px-4 text-sm cursor-pointer">
-          9 Pack
-        </li>
-        <li className="ring-1 ring-lama text-white bg-lama rounded-md py-1 px-4 text-sm cursor-pointer">
-          12 Pack
-        </li>
-      </ul>
-    </div>
-  );
+interface CustomizeProductsProps {
+    pricing: {
+        price_3pk: number | null;
+        price_6pk: number | null;
+        price_9pk: number | null;
+        price_12pk: number | null;
+    };
+    selectedPack: number;
+    setSelectedPack: React.Dispatch<React.SetStateAction<number>>;
+    readOnly?: boolean; // <-- Added to allow readonly display
+}
+
+const CustomizeProducts: React.FC<CustomizeProductsProps> = ({
+    pricing,
+    selectedPack,
+    setSelectedPack,
+    readOnly = false, // default to false for interactive use
+}) => {
+    const PACK_OPTIONS = [
+        { label: "3 Pack", value: 3, price: pricing.price_3pk },
+        { label: "6 Pack", value: 6, price: pricing.price_6pk },
+        { label: "9 Pack", value: 9, price: pricing.price_9pk },
+        { label: "12 Pack", value: 12, price: pricing.price_12pk },
+    ];
+
+    const handleSelect = (packValue: number, disabled?: boolean) => {
+        if (!disabled && !readOnly) {
+            setSelectedPack(packValue);
+        }
+    };
+
+    return (
+        <div className="flex flex-col gap-4">
+            <h4 className="font-medium">Select a Pack</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {PACK_OPTIONS.map((pack) => {
+                    const isSelected = selectedPack === pack.value;
+                    const disabled = pack.price === null || pack.price === undefined;
+                    return (
+                        <div
+                            key={pack.value}
+                            onClick={() => handleSelect(pack.value, disabled)}
+                            className={`
+                                flex flex-col items-center justify-center
+                                border rounded-md p-2 cursor-pointer transition
+                                ${readOnly || disabled
+                                    ? "bg-pink-100 text-pink-400 cursor-not-allowed"
+                                    : isSelected
+                                        ? "border-lama bg-lama text-white"
+                                        : "border-gray-300 hover:border-lama"
+                                }
+                            `}
+                        >
+                            <span className="font-medium">{pack.label}</span>
+                            <span className={`text-sm ${isSelected ? "text-white" : "text-gray-600"}`}>
+                                {pack.price !== null && pack.price !== undefined
+                                    ? `$${pack.price.toFixed(2)}`
+                                    : "N/A"}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 };
 
 export default CustomizeProducts;

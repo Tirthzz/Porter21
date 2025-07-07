@@ -1,42 +1,67 @@
 ﻿import { prisma } from "@/utils/connect";
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client"; // Import Prisma for Decimal handling
+import { Prisma } from "@prisma/client";
 
 export const GET = async (req: Request) => {
     const { searchParams } = new URL(req.url);
     const cat = searchParams.get("cat");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-
+    const subcat = searchParams.get("subcat");
+    const varietalRaw = searchParams.get("varietal");
+    const name = searchParams.get("name");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
     const skip = (page - 1) * limit;
 
     try {
-        const products = await prisma.product_profiles.findMany({
-            where: cat
-                ? {
-                    category: {
-                        slug: cat,
-                    },
-                }
-                : {},
-            include: {
-                category: true,
-                subcategory: true,
-                product_prices: {
-                    orderBy: {
-                        month: "desc",
-                    },
-                    take: 1,
+        let products;
+        const varietal = varietalRaw ? decodeURIComponent(varietalRaw) : null;
+
+        console.log("Incoming filters:", { cat, subcat, varietal, name, page, limit });
+
+        if (name) {
+            products = await prisma.$queryRawUnsafe(`
+                SELECT * FROM product_profiles
+                WHERE LOWER(provi_product_name) LIKE LOWER('%${name}%')
+                LIMIT ${limit + 1} OFFSET ${skip}
+            `);
+            console.log("Products fetched via name search:", products.length);
+        } else {
+            products = await prisma.product_profiles.findMany({
+                where: {
+                    ...(cat && {
+                        category: { slug: cat }
+                    }),
+                    ...(subcat && {
+                        subcategory: { slug: subcat }
+                    }),
+                    ...(varietal && {
+                        varietal: {
+                            equals: varietal, // ✅ Remove mode here
+                        }
+                        // For partial match instead:
+                        // varietal: {
+                        //     contains: varietal,
+                        //     mode: "insensitive",
+                        // }
+                    }),
                 },
-            },
-            skip,
-            take: limit + 1,
-        });
+                include: {
+                    category: true,
+                    subcategory: true,
+                    product_prices: {
+                        orderBy: { month: "desc" },
+                        take: 1,
+                    },
+                },
+                skip,
+                take: limit + 1,
+            });
+            console.log("Products fetched via filtered search:", products.length);
+        }
 
         const hasMore = products.length > limit;
         const slicedProducts = hasMore ? products.slice(0, limit) : products;
 
-        // Convert BigInt and Decimal recursively
         const convertBigIntsAndDecimals = (obj: any): any => {
             if (Array.isArray(obj)) {
                 return obj.map(convertBigIntsAndDecimals);
@@ -57,6 +82,7 @@ export const GET = async (req: Request) => {
         };
 
         const safeProducts = convertBigIntsAndDecimals(slicedProducts);
+        console.log("Returning", safeProducts.length, "products, hasMore:", hasMore);
 
         return new NextResponse(
             JSON.stringify({

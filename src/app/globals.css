@@ -3,9 +3,21 @@
 @tailwind utilities;
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 .scrollbar-hide {
-  scrollbar-width: none;
+    scrollbar-width: none;
+}
+
+/* CapSpirits theme consistency */
+body {
+    @apply bg-background text-text;
+}
+
+footer {
+    @apply bg-footerbg text-text;
+}
+html {
+    font-family: var(--font-montserrat), sans-serif;
 }
