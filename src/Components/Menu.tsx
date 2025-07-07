@@ -97,7 +97,7 @@ export default function Menu() {
 
                         {openCategory === category.name && (
                             <div
-                                className={`absolute left-1/2 -translate-x-1/2 mt-2 bg-white border rounded shadow-lg p-8 z-50 ${category.name === "Spirits" ? "w-[900px] grid grid-cols-3 gap-x-8 gap-y-4" : "w-[600px] grid grid-cols-2 gap-6"}`}
+                                className={`absolute left-1/2 -translate-x-1/2 mt-2 bg-white border rounded shadow-lg p-8 z-50 ${category.name === "Spirits" ? "w-[900px] flex justify-between" : "w-[600px] grid grid-cols-2 gap-6"}`}
                                 onMouseEnter={() => setIsHovering(true)}
                                 onMouseLeave={() => {
                                     setIsHovering(false);
@@ -108,33 +108,78 @@ export default function Menu() {
                                     }, 150);
                                 }}
                             >
-                                {category.subcategories.map((subcat) => (
-                                    <div key={subcat.id} className="space-y-1">
-                                        <Link
-                                            href={buildPath(category.slug, subcat.slug)}
-                                            className="font-semibold text-gray-900 hover:text-pink-600 text-sm"
-                                        >
-                                            {subcat.name}
-                                        </Link>
-                                        {subcat.varietals && (
-                                            <ul className="space-y-1 ml-2">
-                                                {subcat.varietals.map((varietal, idx) => (
-                                                    <li key={idx}>
-                                                        <Link
-                                                            href={buildPath(category.slug, subcat.slug, varietal)}
-                                                            className="text-gray-600 hover:text-pink-600 text-xs"
-                                                        >
-                                                            {varietal}
-                                                        </Link>
-                                                    </li>
+                                {category.name === "Spirits" ? (
+                                    <>
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-gray-900 text-sm">Whiskey</p>
+                                            {category.subcategories
+                                                .find((sc) => sc.name === "Whiskey")
+                                                ?.varietals?.map((varietal, idx) => (
+                                                    <Link
+                                                        key={idx}
+                                                        href={buildPath(category.slug, "whiskey", varietal)}
+                                                        className="text-gray-600 hover:text-pink-600 text-xs block"
+                                                    >
+                                                        {varietal}
+                                                    </Link>
                                                 ))}
-                                            </ul>
-                                        )}
-                                    </div>
-                                ))}
-
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-gray-900 text-sm">Tequila</p>
+                                            {category.subcategories
+                                                .find((sc) => sc.name === "Tequila")
+                                                ?.varietals?.map((varietal, idx) => (
+                                                    <Link
+                                                        key={idx}
+                                                        href={buildPath(category.slug, "tequila", varietal)}
+                                                        className="text-gray-600 hover:text-pink-600 text-xs block"
+                                                    >
+                                                        {varietal}
+                                                    </Link>
+                                                ))}
+                                        </div>
+                                        <div className="space-y-1">
+                                            {["Vodka", "Rum", "Gin", "Brandy", "Liqueur"].map((subName) => (
+                                                <Link
+                                                    key={subName}
+                                                    href={buildPath(category.slug, subName.toLowerCase())}
+                                                    className="font-semibold text-gray-900 hover:text-pink-600 text-sm block"
+                                                >
+                                                    {subName}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {category.subcategories.map((subcat) => (
+                                            <div key={subcat.id} className="space-y-1">
+                                                <Link
+                                                    href={buildPath(category.slug, subcat.slug)}
+                                                    className="font-semibold text-gray-900 hover:text-pink-600 text-sm"
+                                                >
+                                                    {subcat.name}
+                                                </Link>
+                                                {subcat.varietals && (
+                                                    <ul className="space-y-1 ml-2">
+                                                        {subcat.varietals.map((varietal, idx) => (
+                                                            <li key={idx}>
+                                                                <Link
+                                                                    href={buildPath(category.slug, subcat.slug, varietal)}
+                                                                    className="text-gray-600 hover:text-pink-600 text-xs"
+                                                                >
+                                                                    {varietal}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
                                 <div
-                                    className={`${category.name === "Spirits" ? "col-span-3" : "col-span-2"} border-t pt-4 flex justify-center`}
+                                    className={`absolute bottom-2 left-1/2 -translate-x-1/2 border-t pt-4 flex justify-center w-full`}
                                 >
                                     <Link
                                         href={buildPath(category.slug)}
