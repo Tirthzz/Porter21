@@ -55,13 +55,6 @@ export default function Menu() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const icons: Record<string, JSX.Element> = {
-        "Beer & Hard Seltzer": <Beer size={16} />,
-        Wine: <Wine size={16} />,
-        Spirits: <Martini size={16} />,
-        "Non-Alcoholic": <Coffee size={16} />,
-    };
-
     const buildPath = (categorySlug: string, subcatSlug?: string, varietalSlug?: string) => {
         let path = `/products/${categorySlug}`;
         if (subcatSlug) path += `/${subcatSlug}`;
@@ -97,7 +90,7 @@ export default function Menu() {
 
                         {openCategory === category.name && (
                             <div
-                                className={`absolute left-1/2 -translate-x-1/2 mt-2 bg-white border rounded shadow-lg p-8 z-50 ${category.name === "Spirits" ? "w-[900px] flex justify-between" : "w-[600px] grid grid-cols-2 gap-6"}`}
+                                className={`absolute left-1/2 -translate-x-1/2 mt-2 bg-white border rounded shadow-lg p-8 z-50 ${category.name === "Spirits" ? "w-[900px] grid grid-cols-3 gap-8" : "w-[700px] grid grid-cols-3 gap-6"}`}
                                 onMouseEnter={() => setIsHovering(true)}
                                 onMouseLeave={() => {
                                     setIsHovering(false);
@@ -110,82 +103,84 @@ export default function Menu() {
                             >
                                 {category.name === "Spirits" ? (
                                     <>
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-gray-900 text-sm">Whiskey</p>
-                                            {category.subcategories
-                                                .find((sc) => sc.name === "Whiskey")
-                                                ?.varietals?.map((varietal, idx) => (
+                                        {['Whiskey', 'Tequila'].map((spirit) => {
+                                            const subcat = category.subcategories.find((sc) => sc.name === spirit);
+                                            return (
+                                                <div key={spirit} className="space-y-2 text-left min-w-[150px]">
                                                     <Link
-                                                        key={idx}
-                                                        href={buildPath(category.slug, "whiskey", varietal)}
-                                                        className="text-gray-600 hover:text-pink-600 text-xs block"
+                                                        href={subcat ? buildPath(category.slug, subcat.slug) : "#"}
+                                                        className="font-semibold text-gray-900 hover:text-pink-600 text-sm"
                                                     >
-                                                        {varietal}
+                                                        {spirit}
                                                     </Link>
-                                                ))}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-gray-900 text-sm">Tequila</p>
-                                            {category.subcategories
-                                                .find((sc) => sc.name === "Tequila")
-                                                ?.varietals?.map((varietal, idx) => (
+                                                    {subcat?.varietals && (
+                                                        <ul className="space-y-1 ml-2">
+                                                            {subcat.varietals.map((varietal, idx) => (
+                                                                <li key={idx}>
+                                                                    <Link
+                                                                        href={buildPath(category.slug, subcat.slug, varietal)}
+                                                                        className="text-gray-600 hover:text-pink-600 text-xs block hover:bg-gray-50 rounded px-1 py-0.5"
+                                                                    >
+                                                                        {varietal}
+                                                                    </Link>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                        <div className="space-y-2 text-left min-w-[150px]">
+                                            {['Vodka', 'Gin', 'Rum', 'Brandy', 'Liqueur'].map((spirit) => {
+                                                const subcat = category.subcategories.find((sc) => sc.name === spirit);
+                                                return (
                                                     <Link
-                                                        key={idx}
-                                                        href={buildPath(category.slug, "tequila", varietal)}
-                                                        className="text-gray-600 hover:text-pink-600 text-xs block"
+                                                        key={spirit}
+                                                        href={subcat ? buildPath(category.slug, subcat.slug) : "#"}
+                                                        className="block font-semibold text-gray-900 hover:text-pink-600 text-sm"
                                                     >
-                                                        {varietal}
+                                                        {spirit}
                                                     </Link>
-                                                ))}
-                                        </div>
-                                        <div className="space-y-1">
-                                            {["Vodka", "Rum", "Gin", "Brandy", "Liqueur"].map((subName) => (
-                                                <Link
-                                                    key={subName}
-                                                    href={buildPath(category.slug, subName.toLowerCase())}
-                                                    className="font-semibold text-gray-900 hover:text-pink-600 text-sm block"
-                                                >
-                                                    {subName}
-                                                </Link>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </>
                                 ) : (
-                                    <>
-                                        {category.subcategories.map((subcat) => (
-                                            <div key={subcat.id} className="space-y-1">
-                                                <Link
-                                                    href={buildPath(category.slug, subcat.slug)}
-                                                    className="font-semibold text-gray-900 hover:text-pink-600 text-sm"
-                                                >
-                                                    {subcat.name}
-                                                </Link>
-                                                {subcat.varietals && (
-                                                    <ul className="space-y-1 ml-2">
-                                                        {subcat.varietals.map((varietal, idx) => (
-                                                            <li key={idx}>
-                                                                <Link
-                                                                    href={buildPath(category.slug, subcat.slug, varietal)}
-                                                                    className="text-gray-600 hover:text-pink-600 text-xs"
-                                                                >
-                                                                    {varietal}
-                                                                </Link>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </>
+                                    category.subcategories.map((subcat) => (
+                                        <div key={subcat.id} className="space-y-2 text-left min-w-[150px]">
+                                            <Link
+                                                href={buildPath(category.slug, subcat.slug)}
+                                                className="font-semibold text-gray-900 hover:text-pink-600 text-sm"
+                                            >
+                                                {subcat.name}
+                                            </Link>
+                                            {subcat.varietals && (
+                                                <ul className="space-y-1 ml-2">
+                                                    {subcat.varietals.map((varietal, idx) => (
+                                                        <li key={idx}>
+                                                            <Link
+                                                                href={buildPath(category.slug, subcat.slug, varietal)}
+                                                                className="text-gray-600 hover:text-pink-600 text-xs block hover:bg-gray-50 rounded px-1 py-0.5"
+                                                            >
+                                                                {varietal}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    ))
                                 )}
-                                <div
-                                    className={`absolute bottom-2 left-1/2 -translate-x-1/2 border-t pt-4 flex justify-center w-full`}
-                                >
+                                <div className="col-span-full border-t pt-4 flex justify-center">
                                     <Link
                                         href={buildPath(category.slug)}
-                                        className="flex items-center gap-1 text-sm text-pink-600 hover:underline"
+                                        className="flex items-center gap-1 text-sm text-pink-600 hover:underline px-4 py-2"
                                     >
-                                        {icons[category.name]} Browse All {category.name}
+                                        {category.name === "Wine" && <Wine size={16} />}
+                                        {category.name === "Spirits" && <Martini size={16} />}
+                                        {category.name === "Beer & Hard Seltzer" && <Beer size={16} />}
+                                        {category.name === "Non-Alcoholic" && <Coffee size={16} />}
+                                        Browse All {category.name}
                                     </Link>
                                 </div>
                             </div>
