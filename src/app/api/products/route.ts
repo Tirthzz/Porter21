@@ -7,56 +7,51 @@ export const GET = async (req: Request) => {
     const cat = searchParams.get("cat");
     const subcat = searchParams.get("subcat");
     const varietalRaw = searchParams.get("varietal");
+    const regionRaw = searchParams.get("region");
+    const countryRaw = searchParams.get("country");
     const name = searchParams.get("name");
+    const minPrice = searchParams.get("min");
+    const maxPrice = searchParams.get("max");
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const skip = (page - 1) * limit;
 
     try {
-        let products;
         const varietal = varietalRaw ? decodeURIComponent(varietalRaw) : null;
+        const region = regionRaw ? decodeURIComponent(regionRaw) : null;
+        const country = countryRaw ? decodeURIComponent(countryRaw) : null;
 
-        console.log("Incoming filters:", { cat, subcat, varietal, name, page, limit });
+        console.log("Incoming filters:", {
+            cat, subcat, varietal, region, country, name, minPrice, maxPrice, page, limit
+        });
+
+        let products;
 
         if (name) {
-            products = await prisma.$queryRawUnsafe(`
+            products = await prisma.$queryRawUnsafe<any[]>(`
                 SELECT * FROM product_profiles
                 WHERE LOWER(provi_product_name) LIKE LOWER('%${name}%')
                 LIMIT ${limit + 1} OFFSET ${skip}
             `);
-            console.log("Products fetched via name search:", products.length);
         } else {
             products = await prisma.product_profiles.findMany({
                 where: {
-                    ...(cat && {
-                        category: { slug: cat }
-                    }),
-                    ...(subcat && {
-                        subcategory: { slug: subcat }
-                    }),
-                    ...(varietal && {
-                        varietal: {
-                            equals: varietal, // ✅ Remove mode here
-                        }
-                        // For partial match instead:
-                        // varietal: {
-                        //     contains: varietal,
-                        //     mode: "insensitive",
-                        // }
-                    }),
+                    ...(cat && { category: { slug: cat } }),
+                    ...(subcat && { subcategory: { slug: subcat } }),
+                    ...(varietal && { varietal: { in: varietal.split(",").map(v => v.trim()) } }),
+                    ...(region && { region: { in: region.split(",").map(r => r.trim()) } }),
+                    ...(country && { county: { in: country.split(",").map(c => c.trim()) } }),
+                    ...(minPrice && { website_pricing: { unit_price_after: { gte: parseFloat(minPrice) } } }),
+                    ...(maxPrice && { website_pricing: { unit_price_after: { lte: parseFloat(maxPrice) } } }),
                 },
                 include: {
                     category: true,
                     subcategory: true,
-                    product_prices: {
-                        orderBy: { month: "desc" },
-                        take: 1,
-                    },
+                    website_pricing: true,
                 },
                 skip,
                 take: limit + 1,
             });
-            console.log("Products fetched via filtered search:", products.length);
         }
 
         const hasMore = products.length > limit;
@@ -82,20 +77,14 @@ export const GET = async (req: Request) => {
         };
 
         const safeProducts = convertBigIntsAndDecimals(slicedProducts);
-        console.log("Returning", safeProducts.length, "products, hasMore:", hasMore);
 
-        return new NextResponse(
-            JSON.stringify({
-                products: safeProducts,
-                hasMore,
-            }),
+        return NextResponse.json(
+            { products: safeProducts, hasMore },
             { status: 200 }
         );
     } catch (err) {
-        console.error("API ERROR:", err);
-        return new NextResponse(
-            JSON.stringify({ message: "Something went wrong!" }),
-            { status: 500 }
-        );
+        console.error("API PRODUCTS ERROR:", err);
+        return NextResponse.json({ message: "Something went wrong!" }, { status: 500 });
     }
 };
+

@@ -2,7 +2,6 @@
 
 import Filter from "@/Components/Filter";
 import ProductList from "@/Components/ProductList";
-import Image from "next/image";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -13,7 +12,6 @@ export async function generateMetadata({ params }: { params: { slug: string[] } 
         description: `Browse products for ${title} on Capital Spirits.`,
     };
 }
-
 
 const Breadcrumbs = ({ slug }: { slug: string[] }) => {
     const parts = slug || [];
@@ -39,34 +37,23 @@ const Breadcrumbs = ({ slug }: { slug: string[] }) => {
     );
 };
 
-
 const ListPage = ({ params }: { params: { slug: string[] } }) => {
     return (
-        <div className="px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 relative">
-            {/* Breadcrumbs */}
+        <div className="px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-48 relative">
             <Breadcrumbs slug={params.slug} />
 
-            {/* CAMPAIGN */}
-            {/*<div className="hidden bg-pink-50 px-4 sm:flex justify-between h-64 mt-6">*/}
-            {/*    <div className="w-2/3 flex flex-col items-center justify-center gap-8">*/}
-            {/*        <h1 className="text-4xl font-semibold leading-[48px] text-gray-700">*/}
-            {/*            Grab up to 50% off on <br /> Selected Products*/}
-            {/*        </h1>*/}
-            {/*        <button className="rounded-3xl bg-lama text-white w-max py-3 px-5 text-sm">*/}
-            {/*            Buy Now*/}
-            {/*        </button>*/}
-            {/*    </div>*/}
-            {/*    <div className="relative w-1/3">*/}
-            {/*        <Image src="/woman.png" alt="Campaign" fill className="object-contain" />*/}
-            {/*    </div>*/}
-            {/*</div>*/}
+            <div className="mt-6 flex flex-col lg:flex-row gap-8">
+                {/* Sidebar Filter */}
+                <div className="w-full lg:w-1/4 xl:w-1/5">
+                    <Filter />
+                </div>
 
-            {/* Filter */}
-            {/*<Filter />*/}
-
-            {/* Products */}
-            <h1 className="mt-12 text-xl font-semibold">Products for you!</h1>
-            <ProductList />
+                {/* Product List */}
+                <div className="w-full lg:w-3/4 xl:w-4/5">
+                    <h1 className="text-xl font-semibold mb-4">Products for you!</h1>
+                    <ProductList />
+                </div>
+            </div>
         </div>
     );
 };
