@@ -1,82 +1,87 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import Select from "react-select";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 const Filter = () => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { replace } = useRouter();
+    const [filters, setFilters] = useState<any>(null);
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
+    const [isPending, startTransition] = useTransition();
 
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    const params = new URLSearchParams(searchParams);
-    params.set(name, value);
-    replace(`${pathname}?${params.toString()}`);
-  };
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
 
-  return (
-    <div className="mt-12 flex justify-between">
-      <div className="flex gap-6 flex-wrap">
-        <select
-          name="type"
-          id=""
-          className="py-2 px-4 rounded-2xl text-xs font-medium bg-[#EBEDED]"
-          onChange={handleFilterChange}
-        >
-          <option>Type</option>
-          <option value="physical">Physical</option>
-          <option value="digital">Digital</option>
-        </select>
-        <input
-          type="text"
-          name="min"
-          placeholder="min price"
-          className="text-xs rounded-2xl pl-2 w-24 ring-1 ring-gray-400"
-          onChange={handleFilterChange}
-        />
-        <input
-          type="text"
-          name="max"
-          placeholder="max price"
-          className="text-xs rounded-2xl pl-2 w-24 ring-1 ring-gray-400"
-          onChange={handleFilterChange}
-        />
-        {/* TODO: Filter Categories */}
-        <select
-          name="cat"
-          className="py-2 px-4 rounded-2xl text-xs font-medium bg-[#EBEDED]"
-          onChange={handleFilterChange}
-        >
-          <option>Category</option>
-          <option value="">New Arrival</option>
-          <option value="">Popular</option>
-        </select>
-        <select
-          name=""
-          id=""
-          className="py-2 px-4 rounded-2xl text-xs font-medium bg-[#EBEDED]"
-        >
-          <option>All Filters</option>
-        </select>
-      </div>
-      <div className="">
-        <select
-          name="sort"
-          id=""
-          className="py-2 px-4 rounded-2xl text-xs font-medium bg-white ring-1 ring-gray-400"
-          onChange={handleFilterChange}
-        >
-          <option>Sort By</option>
-          <option value="asc price">Price (low to high)</option>
-          <option value="desc price">Price (high to low)</option>
-          <option value="asc lastUpdated">Newest</option>
-          <option value="desc lastUpdated">Oldest</option>
-        </select>
-      </div>
-    </div>
-  );
+    //  Extract cat and subcat from pathname
+    const parts = pathname.split("/").filter(Boolean);
+    const cat = parts[1] || "";     // products/<cat>/<subcat>
+    const subcat = parts[2] || "";
+
+    useEffect(() => {
+        const fetchFilters = async () => {
+            const res = await fetch(`/api/filters?cat=${cat}&subcat=${subcat}`);
+            const data = await res.json();
+            setFilters(data);
+            setPriceRange([data.minPrice || 0, data.maxPrice || 100]);
+        };
+        fetchFilters();
+    }, [pathname]); // rerun when navigating to different category
+
+    const updateParams = (key: string, value: string) => {
+        const params = new URLSearchParams(searchParams);
+        if (value) {
+            params.set(key, value);
+        } else {
+            params.delete(key);
+        }
+        router.push(`${pathname}?${params.toString()}`);
+    };
+
+    if (!filters) return <div>Loading filters...</div>;
+
+    return (
+        <div className="space-y-4 w-full md:w-64">
+            <h2 className="font-semibold text-lg">Filters</h2>
+
+            <Select
+                options={filters.varietals.map((v: string) => ({ label: v, value: v }))}
+                onChange={(val: any) => updateParams("varietal", val?.value)}
+                placeholder="Search Varietals"
+                isClearable
+            />
+
+            <Select
+                options={filters.regions.map((r: string) => ({ label: r, value: r }))}
+                onChange={(val: any) => updateParams("region", val?.value)}
+                placeholder="Search Regions"
+                isClearable
+            />
+
+            <Select
+                options={filters.countries.map((c: string) => ({ label: c, value: c }))}
+                onChange={(val: any) => updateParams("country", val?.value)}
+                placeholder="Search Countries"
+                isClearable
+            />
+
+            <div>
+                <p>Price Range: ${priceRange[0]} - ${priceRange[1]}</p>
+                <Slider
+                    range
+                    min={filters.minPrice}
+                    max={filters.maxPrice}
+                    defaultValue={[filters.minPrice, filters.maxPrice]}
+                    onAfterChange={(val: any) => {
+                        updateParams("min", val[0].toString());
+                        updateParams("max", val[1].toString());
+                    }}
+                />
+            </div>
+        </div>
+    );
 };
 
 export default Filter;
