@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, Wine, Beer, Martini, Coffee } from "lucide-react";
 
 type VarietalMenu = {
@@ -23,17 +23,16 @@ export default function Menu() {
     const [isHovering, setIsHovering] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         const fetchMenu = async () => {
             const res = await fetch("/api/menu");
             const data = await res.json();
-
             const orderedCategories = ["Wine", "Spirits", "Beer & Hard Seltzer", "Non-Alcoholic"];
             const filtered = orderedCategories
-                .map((name) => data.find((cat: VarietalMenu) => cat.name === name))
+                .map(name => data.find((cat: VarietalMenu) => cat.name === name))
                 .filter(Boolean) as VarietalMenu[];
-
             setMenuData(filtered);
         };
         fetchMenu();
@@ -58,7 +57,12 @@ export default function Menu() {
     const buildPath = (categorySlug: string, subcatSlug?: string, varietalSlug?: string) => {
         let path = `/products/${categorySlug}`;
         if (subcatSlug) path += `/${subcatSlug}`;
-        if (varietalSlug) path += `/${encodeURIComponent(varietalSlug)}`;
+        if (varietalSlug) {
+            const params = new URLSearchParams();
+            params.set("varietal", varietalSlug);
+            params.set("page", "1");
+            path += `?${params.toString()}`;
+        }
         return path;
     };
 
@@ -173,7 +177,7 @@ export default function Menu() {
                                 )}
                                 <div className="col-span-full border-t pt-4 flex justify-center">
                                     <Link
-                                        href={buildPath(category.slug)}
+                                        href={`/products/${category.slug}`}
                                         className="flex items-center gap-1 text-sm text-pink-600 hover:underline px-4 py-2"
                                     >
                                         {category.name === "Wine" && <Wine size={16} />}

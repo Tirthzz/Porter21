@@ -4,14 +4,15 @@ import { Prisma } from "@prisma/client";
 
 export const GET = async (req: Request) => {
     const { searchParams } = new URL(req.url);
+
     const cat = searchParams.get("cat");
     const subcat = searchParams.get("subcat");
     const varietalRaw = searchParams.get("varietal");
     const regionRaw = searchParams.get("region");
     const countryRaw = searchParams.get("country");
     const name = searchParams.get("name");
-    const minPrice = searchParams.get("min");
-    const maxPrice = searchParams.get("max");
+    const minPriceRaw = searchParams.get("min");
+    const maxPriceRaw = searchParams.get("max");
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const skip = (page - 1) * limit;
@@ -20,6 +21,8 @@ export const GET = async (req: Request) => {
         const varietal = varietalRaw ? decodeURIComponent(varietalRaw) : null;
         const region = regionRaw ? decodeURIComponent(regionRaw) : null;
         const country = countryRaw ? decodeURIComponent(countryRaw) : null;
+        const minPrice = minPriceRaw ? parseFloat(minPriceRaw) : null;
+        const maxPrice = maxPriceRaw ? parseFloat(maxPriceRaw) : null;
 
         console.log("Incoming filters:", {
             cat, subcat, varietal, region, country, name, minPrice, maxPrice, page, limit
@@ -41,8 +44,15 @@ export const GET = async (req: Request) => {
                     ...(varietal && { varietal: { in: varietal.split(",").map(v => v.trim()) } }),
                     ...(region && { region: { in: region.split(",").map(r => r.trim()) } }),
                     ...(country && { county: { in: country.split(",").map(c => c.trim()) } }),
-                    ...(minPrice && { website_pricing: { unit_price_after: { gte: parseFloat(minPrice) } } }),
-                    ...(maxPrice && { website_pricing: { unit_price_after: { lte: parseFloat(maxPrice) } } }),
+                    website_pricing: {
+                        is: {
+                            unit_price_after: {
+                                not: null,
+                                ...(minPrice !== null ? { gte: minPrice } : {}),
+                                ...(maxPrice !== null ? { lte: maxPrice } : {}),
+                            }
+                        }
+                    },
                 },
                 include: {
                     category: true,
@@ -87,4 +97,5 @@ export const GET = async (req: Request) => {
         return NextResponse.json({ message: "Something went wrong!" }, { status: 500 });
     }
 };
+
 

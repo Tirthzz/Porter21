@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-
-const ITEMS_PER_PAGE = 20;
+import Pagination from "./Pagination";
 
 const ProductList = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -13,15 +12,12 @@ const ProductList = () => {
     const [hasMore, setHasMore] = useState(false);
 
     const searchParams = useSearchParams();
-    const pathname = usePathname();
     const router = useRouter();
+    const pathname = usePathname();
 
     const parts = pathname.split("/").filter(Boolean);
     const cat = parts[1] || "";
     const subcat = parts[2] || "";
-    const varietal = parts[3] || "";
-
-    const page = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -29,10 +25,6 @@ const ProductList = () => {
             const params = new URLSearchParams(searchParams);
             if (cat) params.set("cat", cat);
             if (subcat) params.set("subcat", subcat);
-            if (varietal) params.set("varietal", varietal);
-            params.set("page", page.toString());
-            params.set("limit", ITEMS_PER_PAGE.toString());
-
             const res = await fetch(`/api/products?${params.toString()}`);
             const data = await res.json();
             setProducts(data.products);
@@ -40,25 +32,13 @@ const ProductList = () => {
             setLoading(false);
         };
         fetchProducts();
-    }, [searchParams, pathname, page]);
-
-    const goToPage = (newPage: number) => {
-        const params = new URLSearchParams(searchParams);
-        params.set("page", newPage.toString());
-        router.push(`${pathname}?${params.toString()}`);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
+    }, [searchParams, pathname]);
 
     if (loading) return <div>Loading products...</div>;
-
-    const pageNumbers = [];
-    const lastPage = hasMore ? page + 1 : page; // crude estimation, can improve with total count later
-    for (let p = 1; p <= lastPage; p++) {
-        pageNumbers.push(p);
-    }
+    if (products.length === 0) return <div className="text-center text-gray-500">No products found.</div>;
 
     return (
-        <>
+        <div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 {products.map((product) => (
                     <Link
@@ -82,34 +62,10 @@ const ProductList = () => {
                 ))}
             </div>
 
-            {/* Pagination */}
-            <div className="flex justify-center items-center gap-2 mt-10">
-                <button
-                    onClick={() => goToPage(page - 1)}
-                    disabled={page === 1}
-                    className={`px-3 py-1 rounded border ${page === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
-                >
-                    Previous
-                </button>
-                {pageNumbers.map((p) => (
-                    <button
-                        key={p}
-                        onClick={() => goToPage(p)}
-                        className={`px-3 py-1 rounded border ${p === page ? "bg-pink-500 text-white" : "hover:bg-gray-100"}`}
-                    >
-                        {p}
-                    </button>
-                ))}
-                <button
-                    onClick={() => goToPage(page + 1)}
-                    disabled={!hasMore}
-                    className={`px-3 py-1 rounded border ${!hasMore ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
-                >
-                    Next
-                </button>
-            </div>
-        </>
+            <Pagination hasMore={hasMore} />
+        </div>
     );
 };
 
 export default ProductList;
+

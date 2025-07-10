@@ -8,43 +8,65 @@ export const GET = async (req: Request) => {
     const varietal = searchParams.get("varietal");
 
     try {
-        const filters = await prisma.product_profiles.findMany({
-            where: {
-                ...(cat ? { category: { slug: cat } } : {}),
-                ...(subcat ? { subcategory: { slug: subcat } } : {}),
-                ...(varietal ? { varietal: { equals: varietal } } : {}),
-                website_pricing: { unit_price_after: { not: null } },
+        const whereClause: any = {
+            ...(cat ? { category: { slug: cat } } : {}),
+            ...(subcat ? { subcategory: { slug: subcat } } : {}),
+            ...(varietal ? { varietal: varietal } : {}),
+            website_pricing: {
+                is: {
+                    unit_price_after: {
+                        not: null,
+                    },
+                },
             },
+        };
+
+        const varietals = await prisma.product_profiles.groupBy({
+            by: ["varietal"],
+            where: whereClause,
+            _count: { varietal: true },
+        });
+
+        const regions = await prisma.product_profiles.groupBy({
+            by: ["region"],
+            where: whereClause,
+            _count: { region: true },
+        });
+
+        const countries = await prisma.product_profiles.groupBy({
+            by: ["county"],
+            where: whereClause,
+            _count: { county: true },
+        });
+
+        const prices = await prisma.product_profiles.findMany({
+            where: whereClause,
             select: {
-                varietal: true,
-                region: true,
-                county: true,
-                website_pricing: { select: { unit_price_after: true } },
+                website_pricing: {
+                    select: {
+                        unit_price_after: true,
+                    },
+                },
             },
         });
 
-        const varietalsSet = new Set<string>();
-        const regionsSet = new Set<string>();
-        const countriesSet = new Set<string>();
-        const prices: number[] = [];
+        const priceValues = prices
+            .map(item => Number(item.website_pricing?.unit_price_after))
+            .filter(p => !isNaN(p));
 
-        filters.forEach(item => {
-            if (item.varietal) varietalsSet.add(item.varietal);
-            if (item.region) regionsSet.add(item.region);
-            if (item.county) countriesSet.add(item.county);
-            const price = item.website_pricing?.unit_price_after
-                ? Number(item.website_pricing.unit_price_after)
-                : null;
-            if (price !== null) prices.push(price);
-        });
-
-        const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-        const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+        const minPrice = priceValues.length > 0 ? Math.min(...priceValues) : 0;
+        const maxPrice = priceValues.length > 0 ? Math.max(...priceValues) : 0;
 
         return NextResponse.json({
-            varietals: Array.from(varietalsSet).sort(),
-            regions: Array.from(regionsSet).sort(),
-            countries: Array.from(countriesSet).sort(),
+            varietals: varietals
+                .filter(v => v.varietal !== null)
+                .map(v => ({ name: v.varietal as string, count: v._count.varietal })),
+            regions: regions
+                .filter(r => r.region !== null)
+                .map(r => ({ name: r.region as string, count: r._count.region })),
+            countries: countries
+                .filter(c => c.county !== null)
+                .map(c => ({ name: c.county as string, count: c._count.county })),
             minPrice,
             maxPrice,
         });
